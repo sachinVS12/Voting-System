@@ -63,3 +63,23 @@ exports.deleteParty = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+exports.getResults = async (req, res) => {
+  try {
+    const parties = await Party.find({ isActive: true })
+      .sort({ votes: -1 })
+      .select("name symbol votes color");
+
+    // Find winner(s) - in case of tie
+    const maxVotes = parties[0]?.votes || 0;
+    const winners = parties.filter((party) => party.votes === maxVotes);
+
+    res.json({
+      parties,
+      winners,
+      totalVotes: parties.reduce((sum, party) => sum + party.votes, 0),
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
